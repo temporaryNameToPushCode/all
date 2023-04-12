@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_45abfce6_13b6_48d7_b3fa_b48fab2ab714_Output_Variables_Vheader = String | Null
+

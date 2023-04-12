@@ -1,0 +1,1 @@
+fun convert(a)=upper(a)

@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="314c8048-9269-441a-b6b0-9e4cf6cceeb0" >
+		<http:listener-connection host="${http.host}" port="${http.port}" />
+	</http:listener-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="6865955d-af1f-46de-98a0-0489f4590409" />
+	<configuration-properties doc:name="Configuration properties" doc:id="76c81d23-4e54-4463-9cdc-28bd782530f9" file="config.properties" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="6364ba29-0b76-4ced-8a0d-f36fb2e24e77" >
+		<http:request-connection host="${http.host}" port="${http.port}" />
+	</http:request-config>
+	<flow name="sampleFlow" doc:id="af674afc-bf2a-49b7-9c34-810364120121" >
+		<http:listener doc:name="Listener" doc:id="bc59b2d3-c504-4858-b5c2-72050e552dab" config-ref="HTTP_Listener_config" path="/test"/>
+		<set-payload value='#["welcome to " ++ payload ++" yathendra"]' doc:name="Set Payload" doc:id="663f84d0-5301-4e6e-8cb5-4ed27169a69f" />
+		<set-variable value='#[attributes.headers[0]]' doc:name="storing headers" doc:id="e4b92d25-bab2-45e3-bfdf-38426b336ae4" variableName="Vheader"/>
+		<logger level="TRACE" doc:name="Logger" doc:id="46c400be-ed9c-4608-a0e1-5eb4d77147b4" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="60029c06-6da2-468b-aa9f-dd715d52bbe1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload ++ " pravana Raghava and your phone number is " ++ vars.Vheader as String]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="flow" ><![CDATA["sampleFlow2"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="60a1c05e-ddf7-4882-8db7-edade3072455" targetValue='#["nothing"]' name="#[p('flowname')]"/>
+	</flow>
+	<flow name="sampleFlow1" doc:id="45abfce6-13b6-48d7-b3fa-b48fab2ab714" >
+		<ee:transform doc:name="Transform Message" doc:id="30b49a11-1697-4f66-a8ac-4e57c8afe4d2" >
+			<ee:message >
+				<ee:set-payload resource="modules/flow1message.dwl" />
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="cbada883-da44-4180-b292-6ae88edb7da4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+"message":Mule::lookup("demo","DataWeave Lookup")
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sampleFlow2" doc:id="82a9172f-eaa8-4304-95a7-ad1f3dd716fb" >
+		<http:listener doc:name="Listener" doc:id="080cc38e-bcbb-4026-b964-0f9eb15ce71d" config-ref="HTTP_Listener_config" path="${path}"/>
+		<ee:transform doc:name="Transform Message" doc:id="dd7344c2-37e4-44cc-bf6e-64a3613b3a65">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+}
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="Vquery" ><![CDATA[attributes.queryParams.name]]></ee:set-variable>
+				<ee:set-variable variableName="vMethod" ><![CDATA[attributes.method]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<set-payload value='#["Hi "++ vars.Vquery as String ++ " This is " ++ vars.vMethod as String ++ " method"]' doc:name="Set Payload" doc:id="d43a9038-5498-4f9a-812b-dc32f42a3ad8" />
+	</flow>
+	<flow name="demo" doc:id="b14f8309-2703-4d57-a7d9-07c9593d5150" >
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="b3d1651e-d82f-40b8-80e2-fe6baf6a9a99" />
+		<ee:transform doc:name="Transform Message" doc:id="28bc882b-4b56-4945-8942-bd11e8cea6e2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[import modules::transform
+%dw 2.0
+output application/json
+---
+transform::convert("yathendra")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sampleFlow3" doc:id="85ae00e3-6d04-4545-a5ff-6d782768edaf" >
+		<http:listener doc:name="Listener" doc:id="e2f495b5-ed82-41e0-b87a-14bd76b475f3" config-ref="HTTP_Listener_config" path="${requestPath}"/>
+		<set-variable value="#[attributes.queryParams.name]" doc:name="Set Variable" doc:id="01ec647e-4098-4ad0-999d-a7195faa2ef9" variableName="q"/>
+		<http:request method="GET" doc:name="Request" doc:id="eae73a06-496e-423f-bf34-cf6f636f9204" config-ref="HTTP_Request_configuration" path="${path}">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	name : vars.q
+}]]]></http:query-params>
+			<http:response-validator >
+				<http:success-status-code-validator values="200..499" />
+			</http:response-validator>
+		</http:request>
+		<choice doc:name="CheckingGetMethod" doc:id="91be1597-0663-4026-82bc-40ea47058100" >
+			<when expression="#[attributes.statusCode==400]">
+				<ee:transform doc:name="Transform Message" doc:id="6a63edc5-3611-44fc-bc3e-7c4384954188" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+	"400"
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="4b5b571d-bbcf-48dc-9741-53bfccdf2573" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"default"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="sampleFlow4" doc:id="c6852bd8-ae05-4e2f-8171-3ac02f8d0403" >
+		<http:listener doc:name="Listener" doc:id="d18fc1f9-7a49-4b98-885d-cc5fc738012e" config-ref="HTTP_Listener_config" path="/scatter"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="8123b4b7-6c87-497b-a701-439f1bfa32fb" >
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="17d9e7c5-854b-467e-a6b3-50b80d87babf" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Morning Star"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="d9868ea2-0d58-4766-9dde-7c0e6783d1e4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"Orange travels"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="41e6c270-f2c5-4a8e-a744-73470c327c26" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"Kaveri Travels"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="faf57ec1-4c59-4735-8e91-1055d6d26f05" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0].payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sampleFlow5" doc:id="6897b341-923d-4a77-8cbe-5fa829c94e21" >
+		<http:listener doc:name="Listener" doc:id="9e4fa794-f044-44ee-8ab9-fea71aaabb16" config-ref="HTTP_Listener_config" path="/validation"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="546f504e-5561-44fe-95b1-55cd5b71687e" value="#[payload]" message="error"/>
+		<set-payload value='#["hi"]' doc:name="Set Payload" doc:id="cf044d74-a668-4ce6-8846-53ac37f8a840" />
+		<validation:is-number doc:name="Is number" doc:id="7239d924-b5e5-467e-8b3a-23e1485b35e0" value="#[payload]" message="hey man its not a number" numberType="INTEGER"/>
+		<ee:transform doc:name="Transform Message" doc:id="c699b9d6-fea2-4f99-a5a3-ca383c55dc05" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="forEach" doc:id="bfd37b8d-4a85-4370-b97a-ac5350aa723a" >
+		<http:listener doc:name="Listener" doc:id="6c57f79f-d875-4aed-a9d9-65854d3140e3" config-ref="HTTP_Listener_config" path="/foreach"/>
+		<set-payload value='#[[1,2,"apple",4,"banana"]]' doc:name="Set Payload" doc:id="8498cac5-d78d-4148-a7d1-7c99dd56a8c1" />
+		<set-variable value="#[[]]" doc:name="empty" doc:id="a26d6e15-f584-43d9-a9cd-1cb8968f207b" variableName="empty"/>
+		<set-variable value="#[payload]" doc:name="Storing Payload and keeping this in collection tab in for each" doc:id="c401d0dd-b75c-46a7-938a-f9e597ed0f31" variableName="myPayload"/>
+		<set-payload doc:name="String not go into for each" doc:id="7550b618-65aa-4589-943c-3bafa427bf98" value='#["yathendra"]'/>
+		<foreach doc:name="For Each" doc:id="52c9f4f2-d89e-4396-8282-c84aaf42ec33" collection="#[vars.myPayload]">
+			<try doc:name="Try" doc:id="d1ae745a-c150-490f-98a1-93faec125757" >
+				<set-payload value="#[payload * 10]" doc:name="Set Payload" doc:id="a34af60a-3432-4c63-afe9-7ce012d3e69f" />
+				<logger level="INFO" doc:name="Logger" doc:id="483e4d80-33cf-45ae-936a-da1101106e64" message="#[payload]" />
+				<set-variable value="#[vars.empty + payload]" doc:name="empty" doc:id="530cb83f-75cc-42f7-9b1c-536c0ab47fd3" variableName="empty" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="baada6ed-4597-4587-8c36-6d3d93ff5b0b" type="ANY">
+						<ee:transform doc:name="Transform Message" doc:id="4d122fe0-c377-4343-8993-40408897978b" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="errors" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.errors default []) + payload]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="8fec9cc6-2fcc-4afa-8c48-d71e23ddbf85" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"success":vars.empty ,
+	"failed":vars.errors
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sampleFlow7" doc:id="5729be5a-282f-4116-b184-5b940dda9c7d" >
+		<http:listener doc:name="Listener" doc:id="73114a3a-3c7b-4955-82dd-48e361c92fd9" config-ref="HTTP_Listener_config" path="/call"/>
+		<flow-ref doc:name="Flow Reference" doc:id="d6afbef5-e417-4497-826e-44a15d8f52f5" name="sampleFlow6"/>
+		<ee:transform doc:name="Transform Message" doc:id="7f1b974d-23cc-4825-87b8-915ca3f89f87">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.test]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sampleFlow6" doc:id="d5c561ef-3def-49e8-acfa-d6f174c15cef" >
+		<set-payload value='#[[1,2,"apple",4,"banana"]]' doc:name="Set Payload" doc:id="f96d9602-1f61-474c-8443-023abd775286" />
+		<set-variable value="#[[]]" doc:name="Set Variable" doc:id="fb20e713-665b-4efb-b84d-b1a04fea42c5" variableName="test"/>
+		<foreach doc:name="For Each" doc:id="4d90ec49-2ecd-4d1c-98d4-1f51e546a24a" >
+			<set-payload value="#[payload * 10]" doc:name="Set Payload" doc:id="60fa1f24-bdd8-431f-911e-3b028f78ecbd" />
+			<logger level="INFO" doc:name="Logger" doc:id="9932e8c3-b5ba-4fd0-b983-e17800fda734" message="#[payload]"/>
+			<set-variable value="#[vars.test + payload]" doc:name="Set Variable" doc:id="7d459a5b-eadc-4360-bd45-48a7914ec3cf" variableName="test"/>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="10c0d0f6-e188-4065-9782-0149c4c7a13e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.test]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0694d369-0f05-4627-bcbf-8823920411e6" >
+				<ee:transform doc:name="Transform Message" doc:id="184bbdb6-c1d7-4d8f-afb3-97fc6f8d9503" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"on error continue"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+			</error-handler>
+	</flow>
+	<flow name="sampleFlow8" doc:id="12b1ce27-d02a-40a6-a275-e01f4e6c08db" >
+		<http:listener doc:name="Listener" doc:id="f1e8df18-3547-4e84-8f2b-4cb0ffde8938" config-ref="HTTP_Listener_config" path="/batch"/>
+		<set-payload value='#[[1,2,"apple",4,5,"banana",7]]' doc:name="Set Payload" doc:id="e06b0aab-0f95-493f-86f5-c666fd1d7a05" />
+		<batch:job jobName="sampleBatch_Job" doc:id="6f124f95-02bc-492b-9d8e-b63e0696d79e" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="293706f2-78df-409d-8198-f355715c357c" acceptPolicy="ALL">
+					<try doc:name="Try" doc:id="a5888a0c-69f7-41a1-ac1a-c43eda14a7f6" >
+						<set-payload value="#[payload * 10]" doc:name="Set Payload" doc:id="6e9106c5-9f96-42cd-b17c-d4edcbf4c462" />
+						<error-handler >
+							<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e56f52f8-b8ae-4db6-8639-64ba605fee32" >
+								<ee:transform doc:name="Transform Message" doc:id="f774e52b-18dd-49ab-bf2b-7bcb14209240" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</on-error-continue>
+						</error-handler>
+					</try>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="c767ea0d-ee28-4105-b85b-63c151ad53f5" streaming="true">
+						<logger level="INFO" doc:name="Logger" doc:id="8db724b7-cb9d-40d8-8c5d-c8d6a1d15dac" message="#[payload]"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<ee:transform doc:name="Transform Message" doc:id="fd3d6da0-ff68-4eb4-8300-01f82796e011" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</batch:on-complete>
+		</batch:job>
+		<ee:transform doc:name="Transform Message" doc:id="9311c84a-c623-4657-a45e-ac71386575cf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
